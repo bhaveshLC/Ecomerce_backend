@@ -30,7 +30,7 @@ async function handleUpdateCustomerPicture(req, res) {
     quality: "auto",
   });
   imageUrls = optimizeUrl;
-  console.log(imageUrls);
+  //   console.log(imageUrls);
 
   user.picture = imageUrls;
   await user.save();
@@ -93,7 +93,7 @@ async function handleDeleteAddress(req, res) {
 async function handleChangePassword(req, res) {
   const { old_password, new_password } = req.body;
   const user = req.user;
-  console.log(old_password);
+  //   console.log(old_password);
 
   const isPasswordValid = await bcrypt.compare(old_password, user.password);
   if (!isPasswordValid) {

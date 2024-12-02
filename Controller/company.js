@@ -94,15 +94,38 @@ async function handleCompanyInfoUpdate(req, res) {
 }
 
 async function handleGetAllUsers(req, res) {
-  const token = req.headers["authorization"];
-  const userId = JSON.parse(atob(token.split(".")[1]))._id;
-  const user = await User.findById(userId);
-  const userList = await User.find({ "_org._id": user._org._id });
+  const user = req.user;
+  const { name, sortby, page = 1, limit = 10 } = req.query;
+  // const { name, sortBy, limit = 10, page = 1 } = req.query;
+  const itemsPerPage = parseInt(limit, 10);
+  const currentPage = parseInt(page, 10);
+
+  const filterQuery = { "_org._id": user._org._id };
+  if (name) {
+    filterQuery.name = { $regex: name, $options: "i" };
+  }
+  let sortQuery = {};
+  if (sortby) {
+    sortQuery[sortby] = 1;
+  }
+  const userList = await User.find(filterQuery)
+    .sort(sortQuery)
+    .skip((currentPage - 1) * itemsPerPage)
+    .limit(itemsPerPage);
+
+  const totalUsers = await User.countDocuments(filterQuery);
+  const totalPages = Math.ceil(totalUsers / itemsPerPage);
   const result = userList.map((user) => {
     const { password, ...userWithoutPassword } = user.toObject();
     return userWithoutPassword;
   });
-  return res.status(200).json({ result });
+  return res.status(200).json({
+    result,
+    totalUsers,
+    totalPages: totalPages,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 }
 
 async function handleCreateUser(req, res) {
@@ -158,13 +181,13 @@ async function handleDeleteUser(req, res) {
 }
 async function handleChangePassword(req, res) {
   const { old_password, new_password } = req.body;
-  const token = req.headers["authorization"];
-  if (!token) {
-    return res.status(400).json({ message: "Please authenticate." });
-  }
-  const userId = JSON.parse(atob(token.split(".")[1]))._id;
-  const user = await User.findById({ _id: userId });
-
+  // const token = req.headers["authorization"];
+  // if (!token) {
+  //   return res.status(400).json({ message: "Please authenticate." });
+  // }
+  // const userId = JSON.parse(atob(token.split(".")[1]))._id;
+  // const user = await User.findById({ _id: userId });
+  const user = req.user;
   const isPasswordValid = await bcrypt.compare(old_password, user.password);
   if (!isPasswordValid) {
     return res
@@ -262,20 +285,21 @@ async function handleSendVerification(req, res) {
   });
 }
 async function handleVerifyEmail(req, res) {
-  const token = req.query.token;
-  const { password } = req.body;
-  if (!token) {
-    return res.status(400).json({ message: "Please authenticate." });
-  }
-  const decode = JSON.parse(atob(token.split(".")[1]));
-  const userId = decode._id;
-  if (decode.type != "verifyEmail") {
-    return res.json({ message: "Provide Valid Token." });
-  }
-  const user = await User.findById({ _id: userId });
-  if (!user) {
-    return res.status(404).json({ message: "No User Found." });
-  }
+  // const token = req.query.token;
+  // const { password } = req.body;
+  // if (!token) {
+  //   return res.status(400).json({ message: "Please authenticate." });
+  // }
+  // const decode = JSON.parse(atob(token.split(".")[1]));
+  // const userId = decode._id;
+  // if (decode.type != "verifyEmail") {
+  //   return res.json({ message: "Provide Valid Token." });
+  // }
+  // const user = await User.findById({ _id: userId });
+  // if (!user) {
+  //   return res.status(404).json({ message: "No User Found." });
+  // }
+  const user = req.user;
   user.isEmailVerified = true;
   await user.save();
   return res.status(200).json({ message: "Email Verified Successfully." });

@@ -13,11 +13,11 @@ require("dotenv").config();
 
 const app = express();
 app.use(cors());
-const storage = multer.memoryStorage(); // You can also change this to diskStorage if needed
-const upload = multer({ storage }).array("images"); // 'images' is the field name that matches
+const storage = multer.memoryStorage();
+const upload = multer({ storage }).array("images");
 
-app.use(express.json()); // Parses application/json
-app.use(express.urlencoded({ extended: false })); //
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // app.use(
 //   session({

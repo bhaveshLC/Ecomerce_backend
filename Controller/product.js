@@ -98,6 +98,7 @@ async function handleUpdateProductImages(req, res) {
   const product = await Product.findById({ _id: productId });
   const { name, description, price } = req.body;
   const imageToDelete = req.body;
+  // console.log(imageToDelete);
   const imageUrls = product.images;
 
   if (req.files || req.files.length !== 0) {
@@ -111,7 +112,7 @@ async function handleUpdateProductImages(req, res) {
         public_id: uploadResult.public_id,
         url: optimizeUrl,
       });
-      console.log(imageUrls);
+      // console.log(imageUrls);
     }
   }
   cloudinary.api
