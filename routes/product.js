@@ -13,7 +13,7 @@ const {
 } = require("../Controller/product");
 const { authenticateToken } = require("../middleware/authenticateToken");
 
-const uploadDir = path.join(__dirname, "../upload");
+const uploadDir = path.join(__dirname, "../upload/products");
 
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });

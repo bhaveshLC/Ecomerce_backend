@@ -36,7 +36,6 @@ async function handleCompanyLogin(req, res) {
   if (!user) {
     return res.status(404).json({ message: "No User Found." });
   }
-  console.log(user.password);
   if (!user) {
     return res.status(404).json({ message: "User Not Found." });
   }
@@ -95,7 +94,6 @@ async function handleCompanyInfoUpdate(req, res) {
 }
 
 async function handleGetAllUsers(req, res) {
-  console.log(secretKey);
   const token = req.headers["authorization"];
   const userId = JSON.parse(atob(token.split(".")[1]))._id;
   const user = await User.findById(userId);
@@ -110,10 +108,8 @@ async function handleGetAllUsers(req, res) {
 async function handleCreateUser(req, res) {
   const { email, password, name, role } = req.body;
   const token = req.headers["authorization"];
-  console.log(token);
   const userId = JSON.parse(atob(token.split(".")[1]))._id;
   const user = await User.findById(userId);
-  console.log(user);
   const hashedPassword = await bcrypt.hash(password, 10);
   await User.create({
     name: name,
@@ -135,20 +131,17 @@ async function handleUpdateUser(req, res) {
   user.email = email;
   user.password = hashedPassword;
   user.name = name;
-  console.log(user);
   await user.save();
   const { password: userPassword, ...userWithoutPassword } = user.toObject();
   return res.json(userWithoutPassword);
 }
 async function handleUpdateUserRole(req, res) {
   const role = req.body;
-  console.log(role);
   const userId = req.params.userId;
   let user = await User.findById({ _id: userId });
   if (!user) {
     return res.json({ message: "No user found." });
   }
-  console.log(user);
   user.role = role.role;
 
   await user.save();
@@ -156,7 +149,6 @@ async function handleUpdateUserRole(req, res) {
 }
 async function handleDeleteUser(req, res) {
   const userId = req.params.userId;
-  console.log(userId);
 
   const user = await User.findByIdAndDelete({ _id: userId });
   if (!user) {
@@ -174,7 +166,6 @@ async function handleChangePassword(req, res) {
   const user = await User.findById({ _id: userId });
 
   const isPasswordValid = await bcrypt.compare(old_password, user.password);
-  console.log(isPasswordValid);
   if (!isPasswordValid) {
     return res
       .status(400)
@@ -221,7 +212,6 @@ async function handleResetPassword(req, res) {
   const token = req.query.token;
   // console.log(token);
   const { password } = req.body;
-  console.log(password);
   if (!token) {
     return res.status(400).json({ message: "Please authenticate." });
   }
@@ -274,7 +264,6 @@ async function handleSendVerification(req, res) {
 async function handleVerifyEmail(req, res) {
   const token = req.query.token;
   const { password } = req.body;
-  console.log(password);
   if (!token) {
     return res.status(400).json({ message: "Please authenticate." });
   }

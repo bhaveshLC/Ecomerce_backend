@@ -45,8 +45,31 @@ async function handleCreateProduct(req, res) {
 }
 async function handleGetAllProducts(req, res) {
   const user = req.user;
-  const results = await Product.find({ _org: user._org._id });
-  return res.json(results);
+  const { name, sortBy, limit = 10, page = 1 } = req.query;
+  const itemsPerPage = parseInt(limit, 10);
+  const currentPage = parseInt(page, 10);
+  let filterQuery = { _org: user._org._id };
+  if (name) {
+    filterQuery.name = { $regex: name, $options: "i" };
+  }
+  let sortQuery = {};
+  if (sortBy) {
+    sortQuery[sortBy] = 1;
+  }
+  const results = await Product.find(filterQuery)
+    .sort(sortQuery)
+    .skip((currentPage - 1) * itemsPerPage)
+    .limit(itemsPerPage);
+
+  const totalProducts = await Product.countDocuments(filterQuery);
+  const totalPages = Math.ceil(totalProducts / itemsPerPage);
+  return res.status(200).json({
+    results,
+    totalProducts,
+    totalPages: totalPages,
+    page: currentPage,
+    limit: itemsPerPage,
+  });
 }
 async function handleGetProduct(req, res) {
   // const user = req.user;
@@ -72,12 +95,9 @@ async function handleUpdateProduct(req, res) {
 }
 async function handleUpdateProductImages(req, res) {
   const productId = req.params.productId;
-  console.log(req.body);
-  console.log(productId);
   const product = await Product.findById({ _id: productId });
   const { name, description, price } = req.body;
   const imageToDelete = req.body;
-  console.log(imageToDelete);
   const imageUrls = product.images;
 
   if (req.files || req.files.length !== 0) {
@@ -94,6 +114,10 @@ async function handleUpdateProductImages(req, res) {
       console.log(imageUrls);
     }
   }
+  cloudinary.api
+    .delete_resources(imageToDelete.images_to_delete)
+    .then((result) => console.log(result));
+
   product.images = imageUrls.filter(
     (img) => !imageToDelete.images_to_delete.includes(img.public_id)
   );
@@ -105,8 +129,6 @@ async function handleUpdateProductImages(req, res) {
 }
 async function handleDeleteProduct(req, res) {
   const productId = req.params.productId;
-  // console.log(userId);
-
   const product = await Product.findByIdAndDelete({ _id: productId });
   if (!product) {
     return res.json({ message: "No Product Found." });
