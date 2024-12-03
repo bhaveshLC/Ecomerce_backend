@@ -7,6 +7,7 @@ const { productsRoute } = require("./routes/product");
 const multer = require("multer");
 const { shopRoute } = require("./routes/shop");
 const { customerRouter } = require("./routes/customer");
+const { orderRoute } = require("./routes/order");
 // const passport = require("passport");
 // const session = require("express-session");
 require("dotenv").config();
@@ -35,6 +36,7 @@ app.use("/", companyRouter);
 app.use("/products", productsRoute);
 app.use("/shop", shopRoute);
 app.use("/customer", customerRouter);
+app.use("/orders", orderRoute);
 app.listen(process.env.PORT, () =>
   console.log(`Server started at ${process.env.PORT}`)
 );
